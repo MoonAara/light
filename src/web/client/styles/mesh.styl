@@ -1,0 +1,176 @@
+her-gray=#956a8a  
+her-dark-gray=#333
+edge-width=8px
+point-radius=8px
+point-border=2px solid her-gray
+
+html, body
+    margin 0
+    padding 0
+
+.bold 
+    font-weight bold
+
+.rose
+    color pink
+
+.her-page
+    opacity 0
+    z-index 0
+
+.shown 
+    opacity 1
+    z-index 1
+
+.hidden 
+    opacity 0
+    z-index 0
+
+#root 
+    width 100%
+    height 100%
+    font-family Lustria
+
+.wrapper
+    padding 300px
+
+.payment-wrapper
+    width 250px 
+    height 30px
+    font-weight bold
+
+.dolla
+    color #9b364a
+    font-size 1.5em
+
+.payment
+    margin-left 4px
+    padding 8px
+    border 1px solid pink
+    border-radius 4px
+    background-color #e28d8d
+    width 160px
+    &.accepted    
+        background-color white
+
+.payment-box
+    display inline-block
+    padding 3px
+    width 20px
+    height 20px
+    margin-left 5px
+    border-radius 4px
+    color #9b364a
+    border 4px solid pink
+    font-weight bold
+    text-align center
+
+    &.cancel
+        background-color #e28d8d
+        color white
+
+.vibe 
+    display block
+    width 200px
+    height 30px
+    margin 3px 20px
+    border-left 6px solid black
+
+.rating
+
+    margin: 3px 20px;
+    padding: 3px;
+    border: 2px solid rgb(255, 192, 203);
+    border-radius: 4px;
+    width: 150px;
+
+pre 
+    font-family Inconsolata
+
+.active-definition
+    border 1px solid black
+    border-radius 4px
+    padding 8px
+
+.example 
+    width 100px
+    border 1px solid black
+    border-radius 4px
+    padding 4px
+
+.expect
+    margin-top 15px
+    width 100%
+    background-color #222
+    border 1px solid black
+    border-radius 4px
+    padding 10px
+    color white
+
+.her-class
+    position fixed
+
+.her-part
+    border 2px dashed purple
+
+.her-circle 
+    border 1px solid black
+
+.her-block
+    border 1px solid pink
+
+    &.title
+        font-family Cinzel
+        font-size 45px
+    &.header
+        font-family Cinzel
+        font-size 25px
+
+.her-editor,
+.her-block,
+.her-point
+    position fixed
+
+.her-grid-block 
+    border 1px solid her-gray
+
+.her-editor
+    font-family Lustria
+
+    //&.her-edit-mode
+    //    border 4px dashed black
+
+//.her-edit-mode div
+//    border 1px solid her-gray
+
+.her-page
+    border 1px solid black
+
+.her-edge
+    border 1px solid red
+
+.her-edge-wrapper
+    background-color rgba(255, 102, 138, 1)
+    transition opacity 1s
+    //opacity 0
+
+    &.highlighted
+        opacity 1
+
+.her-point
+    border point-border
+
+.but-you-cant-see-it
+    display none
+
+div.her-input
+    margin 4px 5px
+    &[contenteditable]        
+        display inline-block       
+              
+    &[contenteditable]:empty::before 
+        content attr(data-placeholder)  
+        display inline-block       
+        opacity .5
+        &.required
+            color #8a242f 

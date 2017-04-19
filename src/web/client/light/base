@@ -1,0 +1,13 @@
+}page{title,line..}
+
+}line{
+    text..{
+        style,
+        content,
+    }
+}
+
+}context{
+    on page,
+    from page,
+}

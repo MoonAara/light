@@ -1,0 +1,29 @@
+Here's $eth's idea.
+
+1. Write code on github.
+
+2. Confess your sin to $Goddess.
+
+3. Profit.
+
+No ??? asked.
+
+-> Feel free to ask questions. 
+
+How do I submit a module?
+
+> submit module [github-url] (as [team])
+
+The first module is called module. Use it like:
+
+    module>
+
+You can search for module ideas. You can start repos.
+
+The source code for module> is at [url].
+
+You can copy the structure of that for your own module.
+
+How do I make a team?
+
+> [team name]: team of [name,..]

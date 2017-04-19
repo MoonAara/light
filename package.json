@@ -1,0 +1,31 @@
+{
+  "name": "moon",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MoonAara/light.git"
+  },
+  "author": "Moon Aara",
+  "license": "SEE LICENSE IN me",
+  "dependencies": {
+    "async": "^2.1.5",
+    "brfs": "^1.4.3",
+    "color": "^1.0.3",
+    "command-line-args": "~2.1.6",
+    "express": "^4.13.4",
+    "jwerty": "0.3.2",
+    "marked": "^0.3.6",
+    "morpheus": "^0.7.2",
+    "underscore": "1.8.3"
+  },
+  "devDependencies": {
+    "browserify": "^13.0.0",
+    "nodemon": "^1.9.1",
+    "stylus": "^0.54.5"
+  }
+}
