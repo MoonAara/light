@@ -9,7 +9,7 @@ var _ = require("underscore"),
 //      
 //      -or-
 //
-//   new XY(25, 1, 2) 
+//   new XY(25, 1) 
 //
 // both would have the same result  
 //

@@ -14,11 +14,6 @@ var El = module.exports = Class(function(html, opts) {
     _.each(opts, function(val, opt) {
         if(typeof T[opt] === "function") T[opt](val);
     });
-    T.animations = [];
-    T.running = null;
-
-    T.destination = {};
-    T.movement = null;
 },{
     attr: function(attrs) {
         var T = this;
@@ -46,6 +41,9 @@ var El = module.exports = Class(function(html, opts) {
         other_el.up = T;
         return other_el;
     },
+    remove: function(child) {
+        this.el.removeChild(child.el);
+    },
     addClass: function(cl) {
         this.el.className += ' '+cl;
     },
@@ -71,6 +69,9 @@ var El = module.exports = Class(function(html, opts) {
     editable: function(is) {
         if(is) this.attr({contenteditable:"true"});
     },
+    focus: function() {
+        this.el.focus();
+    },
     html: function(html) {
         this.el.innerHTML = html;
     },
@@ -82,7 +83,19 @@ var El = module.exports = Class(function(html, opts) {
         _.extend(styles, {
             complete: cb,   
         });
-        return morph(styles);
+        return morph(T.el, styles);
+    },
+    fade: function(milli, cb) {
+        this.anim({
+            opacity: 0,
+            duration: milli,
+        }, cb);
+    },  
+    show: function(milli, cb) {
+        this.anim({
+            opacity: 1,
+            duration: milli,
+        }, cb);
     },
     on: function(eventmap) {
         var T = this;
@@ -94,4 +107,5 @@ var El = module.exports = Class(function(html, opts) {
     height: function() { return this.el.offsetHeight; },
     rect: function() { return this.el.getBoundingClientRect(); },
     get: function(style) { return this.el.style[style]; },
+    text: function() { return this.el.innerHTML; },
 });

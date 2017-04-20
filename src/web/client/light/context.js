@@ -1,5 +1,7 @@
 var _ = require("underscore"),
+    El = require("../core/el"),
     Class = require("../../common/class"),
+    List = require("../../common/list"),
     //Base = require("../../server/Base"),
 
 Context = module.exports = Class(function(page) {
@@ -8,7 +10,7 @@ Context = module.exports = Class(function(page) {
 
     T.pages = [];
 
-    T.el = new El({
+    T.el = new El("div", {
         into: page.el,
         addClass: "her-context",    
     });
@@ -22,7 +24,7 @@ Context = module.exports = Class(function(page) {
             attr: {
                 "data-link": page.id,
             }
-        });
+        }]);
 
         T.el.insert(item, before);
     },

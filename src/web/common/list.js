@@ -7,7 +7,7 @@ var List = module.exports = Class(function(Item, opts) {
     T.start = null;
     T.end = null;
     T.Item = Item;
-    T.opts = opts ? opts : {};
+    T.opts = opts = opts ? opts : {};
     T.index = {};
     T.count = {};
 
@@ -91,7 +91,10 @@ var List = module.exports = Class(function(Item, opts) {
             second.Lprev = first;
         }
     },
-    swap: function(first, second) {
+    swap: function(node, up, cb) {
+        var first = up ? node.Lprev : node,
+            second = up ? node : node.Lnext;
+
         if(first.Lprev) {
             first.Lprev.Lnext = second;
             second.Lprev = first.Lprev;
@@ -107,7 +110,7 @@ var List = module.exports = Class(function(Item, opts) {
         this.link(second, first);
         //    second.Lnext = first;
         //    first.Lprev = second;
-        console.log("first", first, "second", second);
+        if(typeof cb === "function") cb(first, second);
     },
     add: function(args, before) {
         var T = this,
@@ -151,8 +154,8 @@ var List = module.exports = Class(function(Item, opts) {
             T.add(item);
         });
     },
-    each: function(f) {
-        var n = this.start,
+    each: function(f, start) {
+        var n = start ? start : this.start,
             i = 0;
         while(n) {
             f(n, i++);
