@@ -80,9 +80,11 @@ var El = module.exports = Class(function(html, opts) {
     },
     anim: function(styles, cb) { // see Morpheus docs
         var T = this;
-        _.extend(styles, {
-            complete: cb,   
-        });
+        if(typeof cb === "function") { 
+            _.extend(styles, {
+                complete: cb,   
+            });
+        }
         return morph(T.el, styles);
     },
     fade: function(milli, cb) {

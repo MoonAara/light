@@ -1,9 +1,10 @@
 {
-  "name": "moon",
+  "name": "moonlight",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
+    "run": "./dev",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,7 +20,6 @@
     "command-line-args": "~2.1.6",
     "express": "^4.13.4",
     "jwerty": "0.3.2",
-    "marked": "^0.3.6",
     "morpheus": "^0.7.2",
     "underscore": "1.8.3"
   },

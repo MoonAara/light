@@ -13,12 +13,25 @@ body {
   width: 100%;
   height: 100%;
 }
+#debug {
+  position: fixed;
+  width: 100%;
+  height: 50px;
+  background-color: rgba(0,0,0,0.5);
+  color: #fff;
+}
 .her-page {
   border: 1px solid #000;
+}
+.her-link:hover {
+  cursor: pointer;
 }
 .hidden {
   opacity: 0;
   z-index: 0;
+}
+div:focus {
+  outline: none;
 }
 div.her-input {
   margin: 4px 5px;

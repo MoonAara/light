@@ -1,0 +1,16 @@
+> set standard
+title: size 3.4em; font Cinzel; pad 0 10px; margin 50px 
+header: size 2.5em; font Cormorant Unicase
+context: font Cinzel; fg #666; as inline-block; margin 15px 15px 15px 0; pad 10px
+text: size 1.1em; font Lustria
+styler: box 0px solid #fff; border radius 8px    
+line: pad 10px; box 1px solid #fff
+
+> set standard styler transitions
+on: border color #333; pad 8px; bg #333; fg #fff; milli 200 
+off: bg #fff; border color #fff; pad 0px
+
+> start standard styler on 
+
+> set standard line transitions
+...

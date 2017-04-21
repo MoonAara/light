@@ -1631,9 +1631,11 @@ var El = module.exports = Class(function(html, opts) {
     },
     anim: function(styles, cb) { // see Morpheus docs
         var T = this;
-        _.extend(styles, {
-            complete: cb,   
-        });
+        if(typeof cb === "function") { 
+            _.extend(styles, {
+                complete: cb,   
+            });
+        }
         return morph(T.el, styles);
     },
     fade: function(milli, cb) {
@@ -2594,24 +2596,105 @@ Y.prototype.load=function(a){function b(){if(e["__mti_fntLst"+c]){var d=e["__mti
 
 
 },{}],7:[function(require,module,exports){
+var transparent = "rgba(0,0,0,0)",
+    light = {
+        nature: "#fff757",
+        pink: "#ff9ea9",
+    },
+    dark = {
+        gray: "#333",    
+    };
+
 module.exports = (function() {
     return {
         style: {
+            max: {
+                width: 600,
+            },
             modes: {
+                black: {
+                    page: {
+                        bg: "#000",
+                        fg: "#f0e0ff",
+                    },
+                },
+                deep: {
+                    page: {
+                        bg: "#0a0014",
+                        fg: "#5c2e57",
+                    },
+                },
                 standard: {
-                    title: {
-                        size: '3em',
+                  page: {
+                      bg: "#fff",
+                      fg: "#000",
+                      size: '1.3em',
+                      font: 'Lustria',
+                  },
+                  title: {
+                        size: '3.9em',
                         font: 'Cinzel',
+                        pad: '0 10px',
+                        //margin: '50px 0 40px 0',
                     },
                     header: {
+                        size: '2.5em',
                         font: 'Cormorant Unicase',
                     },
                     context: {
                         font: 'Cinzel',
                         fg: '#666',
+                        as: "inline-block",
+                        margin: "15px 15px 15px 0",
+                        pad: '10px',
                     },
-                    text: {
-                        font: 'Lustria',
+                    styler: {
+                        box: "0px solid #ffffff",
+                        border: {
+                            radius: "8px",
+                        },
+                        start: "off",
+                        trans: {
+                            on: {
+                                border: {
+                                    color: "#333",
+                                    pad: "8px", 
+                                },
+                                bg: dark.gray,
+                                fg: "#fff",
+                                milli: 200,
+                            },
+                            off: {
+                                bg: "#fff",
+                                border: {
+                                    color: "#fff",
+                                    pad: "0px",
+                                },
+                            }
+                        },
+                    },
+                    line: {
+                        pad: "10px",
+                        box: "1px solid #fff",
+                        start: "passive",
+                        trans: {
+                            active: {
+                                border: {
+                                    color: "#ff0",    
+                                },
+                                bg: "#000", // light.nature,
+                                fg: "#fafafa",
+                                milli: 200,
+                            },
+                            passive: {
+                                border: {
+                                    color: "#fff",    
+                                },
+                                bg: "#fff",
+                                fg: "#000",
+                                milli: 200,
+                            },
+                        },
                     },
                 },
             },
@@ -2635,6 +2718,7 @@ Context = module.exports = Class(function(page) {
 
     var T = this;
 
+    T.page = page;
     T.pages = [];
 
     T.el = new El("div", {
@@ -2648,12 +2732,14 @@ Context = module.exports = Class(function(page) {
         var T = this;
         T.pages.push(page);
         var item = T.list.add(["span", {
+            html: page.title.text,
             attr: {
                 "data-link": page.id,
-            }
+            },
+            addClass: "her-link",
         }]);
-
         T.el.insert(item, before);
+        T.page.style.the(item, "context");
     },
 });
 
@@ -2723,16 +2809,16 @@ Editor = module.exports = Class(function(root){
         console.log("showed ", page);
     },
     width: function() {
-        return Math.min(800, this.root.width());
+        return Math.min(config.style.max.width, this.root.width());
     },
-    newpage: function(title) {
+    newpage: function(title, style) {
         var T = this,
             rw = T.root.width(),
             width = T.width(),
             margin = (rw - width)/2.0,
             height = T.root.height();
 
-        var page = new Page(title),
+        var page = new Page(title, style),
             pagel = page.el; 
 
         pagel.style({
@@ -2743,10 +2829,6 @@ Editor = module.exports = Class(function(root){
             margin: "0 "+margin+"px",
         });
 
-        T.style.the(pagel, "text");
-        T.style.the(page.title.el, "title");
-        T.style.the(page.context.el, "context");
-
         pagel.into(T.root);
 
         return page;
@@ -2755,14 +2837,15 @@ Editor = module.exports = Class(function(root){
 
 },{"../../common/class":13,"../../common/links":14,"../core/el":2,"./config":7,"./page":10,"./style":11,"underscore":1}],10:[function(require,module,exports){
 var _ = require("underscore"),
+    config = require("./config"),
     Context = require("./context"),
     Class = require("../../common/class"),
     List = require("../../common/list"),
     El = require("../core/el");
 
-Page = module.exports = Class(function(title) {
+Page = module.exports = Class(function(title, mode) {
     var T = this;
-    
+
     T.el = new El("div");
     T.context = new Context(T);     
     T.title = { 
@@ -2771,29 +2854,36 @@ Page = module.exports = Class(function(title) {
             into: T.el,
             addClass: "her-title",
             html: title,
+            editable: true,
             attr: {
                 "data-placeholder": "Title",
-                contenteditable: "true",
             }
         }),
     };
+
     T.lines = new List(El);
 
+    T.style = new Style(config.style);
+    if(mode) { T.style.mode(mode); }
+    T.styling();
+    T.style.css("::selection", "color:white;background-color:black;");
 },{
     newline: function(before) {
         // TODO header logic
+        if(before) console.log("adding before "+before.text());
         var T = this,
             line = T.lines.add(["div", {
             addClass: "her-line",
             editable: true,
             style: {
                 opacity: 1,
-            }
+            },
         }], before);
 
         T.el.insert(line, before);
 
-        T.keys(line);
+        T.listen(line);
+        T.style.the(line, "line");
 
         return line;
     },
@@ -2803,39 +2893,59 @@ Page = module.exports = Class(function(title) {
             first.fade(200, function() {
                 T.el.insert(second, first);
                 first.show(200);
-                if(up) T.activate(line);
-            });
-            second.fade(300, function() {
                 second.show(200);
+                if(up) second.focus();
             });
+            second.fade(200);
         });  
     },
     remove: function(line) {
+        var T = this,
+            prev = line.Lprev,
+            next = line.Lnext;
+        if(!prev && !next) return;
+        line.el.blur();
+        
         line.fade(200, function() {
-            var next = line.Lnext;
             T.lines.each(function(following) {
-                following.fade(100);
+                following.fade(200);
             }, line);
             setTimeout(function() {
                 T.el.remove(line);
-            }, 100);
-            T.lines.each(function(following) {
-                following.show(100);
-            }, line);
 
-            T.lines.destroy(line);
+                T.lines.each(function(following) {
+                    following.show(200);
+                }, line);
+                
+                T.lines.destroy(line);
+                
+                if(prev) T.activate(prev);
+                else T.activate(next);
+
+                T.lines.each(function(l) {
+                    console.log(l.text());
+                });
+            }, 200);
         });
+
     },
     activate: function(line) {
         var T = this;
         line.focus();  
+        if(T.active) T.style.trans(T.active, "passive");
         T.active = line;
+        T.style.trans(line, "active");
     },
-    keys: function(line) {
+    listen: function(line) {
         var T = this;
         line.on({
+            'mouseup': function(e) {
+                T.activate(line);
+                //T.style.selection();
+            },
+    
+            // keystrokes
             '↩': function(e) {
-                console.log("pressed enter");
                 var next = T.newline(line.Lnext);
                 T.activate(next);
                 return false; // prevents default event
@@ -2854,30 +2964,36 @@ Page = module.exports = Class(function(title) {
                 return false;
             },
             'shift+↑': function(e) {
-                if(T.active.Lprev) {
-                    T.move(T.active, true);
+                if(line.Lprev) {
+                    T.move(line, true);
                 }
                 return false;
             },
             'shift+↓': function(e) {
-                if(T.active.Lnext) {
-                    T.move(T.active);
+                if(line.Lnext) {
+                    T.move(line);
                 }
                 return false;
             },
             'backspace': function() {
-                var T = this;
-                if(T.active.text().length === 0) {
-                    // remove line and focus on previous
+                if(line.text().length === 0) {
+                    T.remove(line);
                 }
             },
         });
     },
+    styling: function() {
+        var T = this;
+        
+        T.style.the(T.el, "page");
+        T.style.the(T.title.el, "title");
+    },
 });
 
-},{"../../common/class":13,"../../common/list":15,"../core/el":2,"./context":8,"underscore":1}],11:[function(require,module,exports){
+},{"../../common/class":13,"../../common/list":15,"../core/el":2,"./config":7,"./context":8,"underscore":1}],11:[function(require,module,exports){
 var _ = require("underscore"),
     webfont = require("../ext/webfont"),
+    u = require("../../common/utils"),
     Class = require("../../common/class"),
     El = require("../core/el");
 
@@ -2894,6 +3010,7 @@ Style = module.exports = Class(function(setting) {
 
     T.mode = "standard";
     T.setting = setting;
+    T.active = T.setting.modes[T.mode];
 
     T.fonts = {};
 
@@ -2910,14 +3027,18 @@ Style = module.exports = Class(function(setting) {
             display: "none",
         }
     });
-    
+
     T.map = {}; // keep track of all styled els
     T.void = new El("#void");
 },{
-    the: function(el, style) { // style this el according to current mode
+    // style this el according to current mode
+    // and keep track of it so that 
+    // when settings change this will get updated
+    the: function(el, style) { 
         var T = this,
-            setting = T.setting.modes[T.mode][style],
+            setting = T.active[style],
             list = T.map[style];
+        console.log(style);
         T.like(el, setting);
 
         if(Array.isArray(list)) {
@@ -2925,20 +3046,46 @@ Style = module.exports = Class(function(setting) {
         } else {
             T.map[style] = [el];
         }
+
+        el.styling = style;
+    },
+    // transition 
+    // 'to' a style set under trans
+    // in the style config
+    // with 'milli' duration
+    trans: function(el, to, cb) {
+        var T = this,
+            style = el.styling,
+            set = T.active[style].trans[to],
+            opts = T.format(set);
+        el.anim(opts, cb);        
+    },
+    format: function(setting) {
+        var set = setting,
+            init = set.start;
+        if(init) {
+            _.extend(set, setting.trans[init]);
+        }
+        return u.remap(set, {
+            fontFamily: "font",
+            fontSize: "size",
+            backgroundColor: "bg",
+            color: "fg",
+            padding: "pad",
+            margin: "margin",
+            display: "as",
+            border: "box",
+            borderColor: "border.color",
+            borderWidth: "border.width",
+            borderRadius: "border.radius",
+            borderStyle: "border.style",
+            duration: "milli",
+        });
     },
     // apply css rules, but like, with shorter names in setting
     like: function(el, setting) {
         var T = this,
-             opts = {
-                //fontFamily: setting.family ? setting.family : setting.font,
-                fontFamily: setting.font,
-                fontSize: setting.size,
-                backgroundColor: setting.bg,
-                color: setting.fg,
-                padding: setting.pad,
-                border: setting.border,
-                borderRadius: setting.rounding+'px',
-            };
+             opts = T.format(setting);
         _.each(setting.bi, function(letter) {
             switch(letter) {
                 case 'b': opts.fontWeight = "bold"; break;
@@ -2946,29 +3093,29 @@ Style = module.exports = Class(function(setting) {
             }
         });
             
+        console.log(opts);
         el.style(opts);
     },
     all: function() { // update the styles of all the els
-        var T = this,
-            settings = T.setting.modes[T.mode];
-        _.each(settings, function(setting, name) {
+        var T = this;
+        _.each(T.active, function(setting, name) {
             _.each(T.map[name], function(el) {
                 T.like(el, setting);
             });
         });
     },
     change: function(style, setting) {
-        var T = this,
-            set = T.setting.mode[T.mode][style];
-        _.extend(T.setting[style], setting);
+        var T = this;
+        _.extend(T.active[style], setting);
         
         _.each(T.map[style], function(el) {
-            T.like(el, set);
+            T.like(el, T.active[style]);
         });
     },
     mode: function(mode) {
         var T = this;
         T.mode = mode;
+        T.active = T.settings.modes[mode];
         T.all();
     },
     font: function(family, provider) {
@@ -2989,17 +3136,16 @@ Style = module.exports = Class(function(setting) {
     },
     scalefont: function(el, style, to) { // used to scale fonts to a certain width
         var T = this,
-            height = el.height(),
             span = new El("span", {
                 html: el.text(),
                 into: T.void,
             });
-        T.the(span, "title");
+        T.the(span, style);
         
-        var width = span.width();
-            scale = to/width;
-            ideal = height * scale,
+        var scale = to/span.width(),
+            ideal = span.height() * scale,
             i = 0;
+
         do {
             // font size doesn't scale to width consistently
             // so decrease gradually until it's right
@@ -3010,11 +3156,9 @@ Style = module.exports = Class(function(setting) {
             ideal *= 0.97; 
             i++;
         } while(span.width() > to);
-        console.log(i);
         el.style({
             fontSize: ideal+'px',
         });
-        console.log(width, height, scale, ideal, el);
 
         T.clearvoid();
     },
@@ -3028,15 +3172,39 @@ Style = module.exports = Class(function(setting) {
             width: ideal+'px',
         });
     },
+    css: function(selector, rule) {
+        var sheet = document.styleSheets[0],
+            // choose correct names in case of IE8
+            rules = sheet.cssRules ? sheet.cssRules : sheet.rules,
+            insert = sheet.insertRule ? "insertRule" : "addRule";
+
+        sheet[insert](selector + ' {' + rule + '}', rules.length);
+    },
     clearvoid: function() {
         var v = this.void;
         while (v.firstChild) {
             v.removeChild(v.firstChild);
         }
     },
+    selected: function() {
+        var T = this,
+            range = window.getSelection().getRangeAt(0),
+            node = range.extractContents(),
+            text = node.textContent,
+            span = new El("span");
+
+        span.html(text);
+
+        T.focus = span;
+        T.el.insert(span);
+        
+        range.insertNode(T.el);
+
+        return span;
+    },
 });
 
-},{"../../common/class":13,"../core/el":2,"../ext/webfont":6,"underscore":1}],12:[function(require,module,exports){
+},{"../../common/class":13,"../../common/utils":16,"../core/el":2,"../ext/webfont":6,"underscore":1}],12:[function(require,module,exports){
 // this is the copyrighted work of Moon Aara, 2017+
 
 var _ = require("underscore"), 
@@ -3091,35 +3259,47 @@ var Links = module.exports = Class(function(content) {
         var T = this,
             prev = node.prev,
             next = node.next;
-        T.link(prev, next);    
-        if(!prev) T.start = next;
-        if(!next) T.end = prev;
+        if(next && prev) {
+            T.link(prev, next);    
+        } else {
+            if(!prev) { 
+                T.start = next;
+                if(next) next.prev = null; 
+            } else { // (!Lnext)
+                T.end = prev;
+                if(prev) prev.next = null; 
+            }  
+        }
         delete T.map[node.id];
     },
     link: function(first, second) {
         first.next = second;
         second.prev = first;
     },
-    swap: function(first, second) {
+    swap: function(node, up, cb) {
+        var T = this,
+            first = up ? node.prev : node,
+            second = up ? node : node.next;
+
         if(first.Lprev) {
-            first.prev.next = second;
-            second.prev = first.prev;
+            T.link(first.prev, second);         
         } else {
             second.prev = null; // prevent cycles
         }
         if(second.next) {
-            second.next.prev = first;   
-            first.next = second.next;
+            T.link(first, second.Lnext);
         } else {
             first.next = null;
         }
         this.link(second, first);
+        if(typeof cb === "function") cb(first, second);
     },
+
     add: function(item, before) {
         var T = this,
             node = {
                 id: T.ids++,
-                content: item,
+                m: item,
             };
         if(before) {
             if(T.start === before) {
@@ -3165,7 +3345,7 @@ var Links = module.exports = Class(function(content) {
         var results = new Links(),
             agg = {};
             cutoff = (typeof until_false === "function") ? until_false :
-                function(node) {return true};
+                function(node) {return true;};
         if(cutoff(origin)) {
             results.add(f(origin));
             _.extend(agg, aggregation(origin, agg, 0));
@@ -3267,9 +3447,17 @@ var List = module.exports = Class(function(Item, opts) {
         var T = this,
             Lprev = item.Lprev,
             Lnext = item.Lnext;
-        T.link(Lprev, Lnext);    
-        if(!Lprev) T.start = Lnext;
-        if(!Lnext) T.end = Lprev;
+        if(Lnext && Lprev) {
+            T.link(Lprev, Lnext);    
+        } else {
+            if(!Lprev) { 
+                T.start = Lnext;
+                if(Lnext) Lnext.Lprev = null; 
+            } else { // (!Lnext)
+                T.end = Lprev;
+                if(Lprev) Lprev.Lnext = null; 
+            }  
+        }
         if(T.opts.index) {
             _.each(T.opts.index, function(property) {
                 var slot = T.index[property][item[property]];
@@ -3289,18 +3477,17 @@ var List = module.exports = Class(function(Item, opts) {
         }
     },
     swap: function(node, up, cb) {
-        var first = up ? node.Lprev : node,
+        var T = this,
+            first = up ? node.Lprev : node,
             second = up ? node : node.Lnext;
 
         if(first.Lprev) {
-            first.Lprev.Lnext = second;
-            second.Lprev = first.Lprev;
+            T.link(first.Lprev, second);         
         } else {
             second.Lprev = null; // prevent cycles
         }
         if(second.Lnext) {
-            second.Lnext.Lprev = first;   
-            first.Lnext = second.Lnext;
+            T.link(first, second.Lnext);
         } else {
             first.Lnext = null;
         }
@@ -3397,4 +3584,37 @@ var List = module.exports = Class(function(Item, opts) {
     }
 });
 
-},{"./class":13,"underscore":1}]},{},[12]);
+},{"./class":13,"underscore":1}],16:[function(require,module,exports){
+var _ = require("underscore"),
+    Class = require("./class");
+
+var El = require("../client/core/el"),
+    debug = new El("#debug");
+debug.style({
+    top: (window.innerHeight - 50) + 'px',
+});
+
+module.exports = (function () { return {
+    log: function(text) {
+        console.log(text ? text : "here");
+        debug.html(text); 
+    },
+    // a concise summary of everything wrong with javascript:
+    remap: function(obj, map) {
+        var result = {};
+        _.each(map, function(original, name) {
+            var parts = original.split('.'),
+                set = _.clone(obj),
+                pl = parts.length - 1.
+                last = parts[pl];
+            for(var i = 0, l = pl; i < l; i++) {
+                set = set[parts[i]];
+                if(!set) return;
+            }
+            if(set[last]) result[name] = set[last];    
+        });
+        return result;  
+    },
+}})();
+
+},{"../client/core/el":2,"./class":13,"underscore":1}]},{},[12]);

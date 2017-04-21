@@ -1,12 +1,13 @@
 var _ = require("underscore"),
+    config = require("./config"),
     Context = require("./context"),
     Class = require("../../common/class"),
     List = require("../../common/list"),
     El = require("../core/el");
 
-Page = module.exports = Class(function(title) {
+Page = module.exports = Class(function(title, mode) {
     var T = this;
-    
+
     T.el = new El("div");
     T.context = new Context(T);     
     T.title = { 
@@ -15,29 +16,36 @@ Page = module.exports = Class(function(title) {
             into: T.el,
             addClass: "her-title",
             html: title,
+            editable: true,
             attr: {
                 "data-placeholder": "Title",
-                contenteditable: "true",
             }
         }),
     };
+
     T.lines = new List(El);
 
+    T.style = new Style(config.style);
+    if(mode) { T.style.mode(mode); }
+    T.styling();
+    T.style.css("::selection", "color:white;background-color:black;");
 },{
     newline: function(before) {
         // TODO header logic
+        if(before) console.log("adding before "+before.text());
         var T = this,
             line = T.lines.add(["div", {
             addClass: "her-line",
             editable: true,
             style: {
                 opacity: 1,
-            }
+            },
         }], before);
 
         T.el.insert(line, before);
 
-        T.keys(line);
+        T.listen(line);
+        T.style.the(line, "line");
 
         return line;
     },
@@ -47,39 +55,59 @@ Page = module.exports = Class(function(title) {
             first.fade(200, function() {
                 T.el.insert(second, first);
                 first.show(200);
-                if(up) T.activate(line);
-            });
-            second.fade(300, function() {
                 second.show(200);
+                if(up) second.focus();
             });
+            second.fade(200);
         });  
     },
     remove: function(line) {
+        var T = this,
+            prev = line.Lprev,
+            next = line.Lnext;
+        if(!prev && !next) return;
+        line.el.blur();
+        
         line.fade(200, function() {
-            var next = line.Lnext;
             T.lines.each(function(following) {
-                following.fade(100);
+                following.fade(200);
             }, line);
             setTimeout(function() {
                 T.el.remove(line);
-            }, 100);
-            T.lines.each(function(following) {
-                following.show(100);
-            }, line);
 
-            T.lines.destroy(line);
+                T.lines.each(function(following) {
+                    following.show(200);
+                }, line);
+                
+                T.lines.destroy(line);
+                
+                if(prev) T.activate(prev);
+                else T.activate(next);
+
+                T.lines.each(function(l) {
+                    console.log(l.text());
+                });
+            }, 200);
         });
+
     },
     activate: function(line) {
         var T = this;
         line.focus();  
+        if(T.active) T.style.trans(T.active, "passive");
         T.active = line;
+        T.style.trans(line, "active");
     },
-    keys: function(line) {
+    listen: function(line) {
         var T = this;
         line.on({
+            'mouseup': function(e) {
+                T.activate(line);
+                //T.style.selection();
+            },
+    
+            // keystrokes
             '↩': function(e) {
-                console.log("pressed enter");
                 var next = T.newline(line.Lnext);
                 T.activate(next);
                 return false; // prevents default event
@@ -98,23 +126,28 @@ Page = module.exports = Class(function(title) {
                 return false;
             },
             'shift+↑': function(e) {
-                if(T.active.Lprev) {
-                    T.move(T.active, true);
+                if(line.Lprev) {
+                    T.move(line, true);
                 }
                 return false;
             },
             'shift+↓': function(e) {
-                if(T.active.Lnext) {
-                    T.move(T.active);
+                if(line.Lnext) {
+                    T.move(line);
                 }
                 return false;
             },
             'backspace': function() {
-                var T = this;
-                if(T.active.text().length === 0) {
-                    // remove line and focus on previous
+                if(line.text().length === 0) {
+                    T.remove(line);
                 }
             },
         });
+    },
+    styling: function() {
+        var T = this;
+        
+        T.style.the(T.el, "page");
+        T.style.the(T.title.el, "title");
     },
 });

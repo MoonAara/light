@@ -1,5 +1,6 @@
 var _ = require("underscore"),
     webfont = require("../ext/webfont"),
+    u = require("../../common/utils"),
     Class = require("../../common/class"),
     El = require("../core/el");
 
@@ -16,6 +17,7 @@ Style = module.exports = Class(function(setting) {
 
     T.mode = "standard";
     T.setting = setting;
+    T.active = T.setting.modes[T.mode];
 
     T.fonts = {};
 
@@ -32,14 +34,18 @@ Style = module.exports = Class(function(setting) {
             display: "none",
         }
     });
-    
+
     T.map = {}; // keep track of all styled els
     T.void = new El("#void");
 },{
-    the: function(el, style) { // style this el according to current mode
+    // style this el according to current mode
+    // and keep track of it so that 
+    // when settings change this will get updated
+    the: function(el, style) { 
         var T = this,
-            setting = T.setting.modes[T.mode][style],
+            setting = T.active[style],
             list = T.map[style];
+        console.log(style);
         T.like(el, setting);
 
         if(Array.isArray(list)) {
@@ -47,20 +53,46 @@ Style = module.exports = Class(function(setting) {
         } else {
             T.map[style] = [el];
         }
+
+        el.styling = style;
+    },
+    // transition 
+    // 'to' a style set under trans
+    // in the style config
+    // with 'milli' duration
+    trans: function(el, to, cb) {
+        var T = this,
+            style = el.styling,
+            set = T.active[style].trans[to],
+            opts = T.format(set);
+        el.anim(opts, cb);        
+    },
+    format: function(setting) {
+        var set = setting,
+            init = set.start;
+        if(init) {
+            _.extend(set, setting.trans[init]);
+        }
+        return u.remap(set, {
+            fontFamily: "font",
+            fontSize: "size",
+            backgroundColor: "bg",
+            color: "fg",
+            padding: "pad",
+            margin: "margin",
+            display: "as",
+            border: "box",
+            borderColor: "border.color",
+            borderWidth: "border.width",
+            borderRadius: "border.radius",
+            borderStyle: "border.style",
+            duration: "milli",
+        });
     },
     // apply css rules, but like, with shorter names in setting
     like: function(el, setting) {
         var T = this,
-             opts = {
-                //fontFamily: setting.family ? setting.family : setting.font,
-                fontFamily: setting.font,
-                fontSize: setting.size,
-                backgroundColor: setting.bg,
-                color: setting.fg,
-                padding: setting.pad,
-                border: setting.border,
-                borderRadius: setting.rounding+'px',
-            };
+             opts = T.format(setting);
         _.each(setting.bi, function(letter) {
             switch(letter) {
                 case 'b': opts.fontWeight = "bold"; break;
@@ -68,29 +100,29 @@ Style = module.exports = Class(function(setting) {
             }
         });
             
+        console.log(opts);
         el.style(opts);
     },
     all: function() { // update the styles of all the els
-        var T = this,
-            settings = T.setting.modes[T.mode];
-        _.each(settings, function(setting, name) {
+        var T = this;
+        _.each(T.active, function(setting, name) {
             _.each(T.map[name], function(el) {
                 T.like(el, setting);
             });
         });
     },
     change: function(style, setting) {
-        var T = this,
-            set = T.setting.mode[T.mode][style];
-        _.extend(T.setting[style], setting);
+        var T = this;
+        _.extend(T.active[style], setting);
         
         _.each(T.map[style], function(el) {
-            T.like(el, set);
+            T.like(el, T.active[style]);
         });
     },
     mode: function(mode) {
         var T = this;
         T.mode = mode;
+        T.active = T.settings.modes[mode];
         T.all();
     },
     font: function(family, provider) {
@@ -111,17 +143,16 @@ Style = module.exports = Class(function(setting) {
     },
     scalefont: function(el, style, to) { // used to scale fonts to a certain width
         var T = this,
-            height = el.height(),
             span = new El("span", {
                 html: el.text(),
                 into: T.void,
             });
-        T.the(span, "title");
+        T.the(span, style);
         
-        var width = span.width();
-            scale = to/width;
-            ideal = height * scale,
+        var scale = to/span.width(),
+            ideal = span.height() * scale,
             i = 0;
+
         do {
             // font size doesn't scale to width consistently
             // so decrease gradually until it's right
@@ -132,11 +163,9 @@ Style = module.exports = Class(function(setting) {
             ideal *= 0.97; 
             i++;
         } while(span.width() > to);
-        console.log(i);
         el.style({
             fontSize: ideal+'px',
         });
-        console.log(width, height, scale, ideal, el);
 
         T.clearvoid();
     },
@@ -150,10 +179,34 @@ Style = module.exports = Class(function(setting) {
             width: ideal+'px',
         });
     },
+    css: function(selector, rule) {
+        var sheet = document.styleSheets[0],
+            // choose correct names in case of IE8
+            rules = sheet.cssRules ? sheet.cssRules : sheet.rules,
+            insert = sheet.insertRule ? "insertRule" : "addRule";
+
+        sheet[insert](selector + ' {' + rule + '}', rules.length);
+    },
     clearvoid: function() {
         var v = this.void;
         while (v.firstChild) {
             v.removeChild(v.firstChild);
         }
+    },
+    selected: function() {
+        var T = this,
+            range = window.getSelection().getRangeAt(0),
+            node = range.extractContents(),
+            text = node.textContent,
+            span = new El("span");
+
+        span.html(text);
+
+        T.focus = span;
+        T.el.insert(span);
+        
+        range.insertNode(T.el);
+
+        return span;
     },
 });

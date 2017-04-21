@@ -25,35 +25,47 @@ var Links = module.exports = Class(function(content) {
         var T = this,
             prev = node.prev,
             next = node.next;
-        T.link(prev, next);    
-        if(!prev) T.start = next;
-        if(!next) T.end = prev;
+        if(next && prev) {
+            T.link(prev, next);    
+        } else {
+            if(!prev) { 
+                T.start = next;
+                if(next) next.prev = null; 
+            } else { // (!Lnext)
+                T.end = prev;
+                if(prev) prev.next = null; 
+            }  
+        }
         delete T.map[node.id];
     },
     link: function(first, second) {
         first.next = second;
         second.prev = first;
     },
-    swap: function(first, second) {
+    swap: function(node, up, cb) {
+        var T = this,
+            first = up ? node.prev : node,
+            second = up ? node : node.next;
+
         if(first.Lprev) {
-            first.prev.next = second;
-            second.prev = first.prev;
+            T.link(first.prev, second);         
         } else {
             second.prev = null; // prevent cycles
         }
         if(second.next) {
-            second.next.prev = first;   
-            first.next = second.next;
+            T.link(first, second.Lnext);
         } else {
             first.next = null;
         }
         this.link(second, first);
+        if(typeof cb === "function") cb(first, second);
     },
+
     add: function(item, before) {
         var T = this,
             node = {
                 id: T.ids++,
-                content: item,
+                m: item,
             };
         if(before) {
             if(T.start === before) {
@@ -99,7 +111,7 @@ var Links = module.exports = Class(function(content) {
         var results = new Links(),
             agg = {};
             cutoff = (typeof until_false === "function") ? until_false :
-                function(node) {return true};
+                function(node) {return true;};
         if(cutoff(origin)) {
             results.add(f(origin));
             _.extend(agg, aggregation(origin, agg, 0));

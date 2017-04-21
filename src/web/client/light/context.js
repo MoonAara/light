@@ -8,6 +8,7 @@ Context = module.exports = Class(function(page) {
 
     var T = this;
 
+    T.page = page;
     T.pages = [];
 
     T.el = new El("div", {
@@ -21,11 +22,13 @@ Context = module.exports = Class(function(page) {
         var T = this;
         T.pages.push(page);
         var item = T.list.add(["span", {
+            html: page.title.text,
             attr: {
                 "data-link": page.id,
-            }
+            },
+            addClass: "her-link",
         }]);
-
         T.el.insert(item, before);
+        T.page.style.the(item, "context");
     },
 });

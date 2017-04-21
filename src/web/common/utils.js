@@ -1,18 +1,31 @@
-var Class = require("./class");
+var _ = require("underscore"),
+    Class = require("./class");
 
-utils = module.exports = (function () { return {
-    copy: function(object) {
-        var T = this,
-            clone = {};
+var El = require("../client/core/el"),
+    debug = new El("#debug");
+debug.style({
+    top: (window.innerHeight - 50) + 'px',
+});
 
-        object.forEach(function(name, value) {
-            if(typeof object[name] === "object" && isNotNull(value)) {
-                clone[name] = T.copy(value);
-            } else {
-                clone[name] = value;
-            }
-        }
-
-        return clone;
+module.exports = (function () { return {
+    log: function(text) {
+        console.log(text ? text : "here");
+        debug.html(text); 
     },
-})();
+    // a concise summary of everything wrong with javascript:
+    remap: function(obj, map) {
+        var result = {};
+        _.each(map, function(original, name) {
+            var parts = original.split('.'),
+                set = _.clone(obj),
+                pl = parts.length - 1.
+                last = parts[pl];
+            for(var i = 0, l = pl; i < l; i++) {
+                set = set[parts[i]];
+                if(!set) return;
+            }
+            if(set[last]) result[name] = set[last];    
+        });
+        return result;  
+    },
+}})();

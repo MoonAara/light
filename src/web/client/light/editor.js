@@ -63,16 +63,16 @@ Editor = module.exports = Class(function(root){
         console.log("showed ", page);
     },
     width: function() {
-        return Math.min(800, this.root.width());
+        return Math.min(config.style.max.width, this.root.width());
     },
-    newpage: function(title) {
+    newpage: function(title, style) {
         var T = this,
             rw = T.root.width(),
             width = T.width(),
             margin = (rw - width)/2.0,
             height = T.root.height();
 
-        var page = new Page(title),
+        var page = new Page(title, style),
             pagel = page.el; 
 
         pagel.style({
@@ -82,10 +82,6 @@ Editor = module.exports = Class(function(root){
             height: height,
             margin: "0 "+margin+"px",
         });
-
-        T.style.the(pagel, "text");
-        T.style.the(page.title.el, "title");
-        T.style.the(page.context.el, "context");
 
         pagel.into(T.root);
 

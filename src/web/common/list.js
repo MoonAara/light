@@ -70,9 +70,17 @@ var List = module.exports = Class(function(Item, opts) {
         var T = this,
             Lprev = item.Lprev,
             Lnext = item.Lnext;
-        T.link(Lprev, Lnext);    
-        if(!Lprev) T.start = Lnext;
-        if(!Lnext) T.end = Lprev;
+        if(Lnext && Lprev) {
+            T.link(Lprev, Lnext);    
+        } else {
+            if(!Lprev) { 
+                T.start = Lnext;
+                if(Lnext) Lnext.Lprev = null; 
+            } else { // (!Lnext)
+                T.end = Lprev;
+                if(Lprev) Lprev.Lnext = null; 
+            }  
+        }
         if(T.opts.index) {
             _.each(T.opts.index, function(property) {
                 var slot = T.index[property][item[property]];
@@ -92,18 +100,17 @@ var List = module.exports = Class(function(Item, opts) {
         }
     },
     swap: function(node, up, cb) {
-        var first = up ? node.Lprev : node,
+        var T = this,
+            first = up ? node.Lprev : node,
             second = up ? node : node.Lnext;
 
         if(first.Lprev) {
-            first.Lprev.Lnext = second;
-            second.Lprev = first.Lprev;
+            T.link(first.Lprev, second);         
         } else {
             second.Lprev = null; // prevent cycles
         }
         if(second.Lnext) {
-            second.Lnext.Lprev = first;   
-            first.Lnext = second.Lnext;
+            T.link(first, second.Lnext);
         } else {
             first.Lnext = null;
         }
