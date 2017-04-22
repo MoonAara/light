@@ -1,4 +1,6 @@
 > style the page black
+T.style.mode("black");
+T.style.the(T.el, "page");
 
 > style its 4 bold
 

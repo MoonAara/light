@@ -10,14 +10,22 @@ var loadfonts = function(set) {
         T.font(options.font);
     });
 };
+    
+var sheet = document.styleSheets[0],
+    // choose correct names in case of IE8
+    rules = sheet.cssRules ? "cssRules" : "rules",
+    insert = sheet.insertRule ? "insertRule" : "addRule";
 
-// uses Google Fonts to print letter blocks
 Style = module.exports = Class(function(setting) {
     var T = this;
 
     T.mode = "standard";
     T.setting = setting;
     T.active = T.setting.modes[T.mode];
+    
+    T.map = {}; // css rules
+    T.sheet = document.createElement("style");
+    T.nextrule = T.sheet[rules].length;
 
     T.fonts = {};
 
@@ -35,95 +43,27 @@ Style = module.exports = Class(function(setting) {
         }
     });
 
-    T.map = {}; // keep track of all styled els
     T.void = new El("#void");
 },{
-    // style this el according to current mode
-    // and keep track of it so that 
-    // when settings change this will get updated
-    the: function(el, style) { 
+    css: function(style, selector) {
         var T = this,
-            setting = T.active[style],
-            list = T.map[style];
-        console.log(style);
-        T.like(el, setting);
-
-        if(Array.isArray(list)) {
-            T.map[style].push(el);
-        } else {
-            T.map[style] = [el];
+            name = ".+...
+            entry = T.map[selector];
+        if(!entry) {
+            entry = T.nextrule++;
+            T.map[selector] = entry;
         }
-
-        el.styling = style;
-    },
-    // transition 
-    // 'to' a style set under trans
-    // in the style config
-    // with 'milli' duration
-    trans: function(el, to, cb) {
-        var T = this,
-            style = el.styling,
-            set = T.active[style].trans[to],
-            opts = T.format(set);
-        el.anim(opts, cb);        
-    },
-    format: function(setting) {
-        var set = setting,
-            init = set.start;
-        if(init) {
-            _.extend(set, setting.trans[init]);
-        }
-        return u.remap(set, {
-            fontFamily: "font",
-            fontSize: "size",
-            backgroundColor: "bg",
-            color: "fg",
-            padding: "pad",
-            margin: "margin",
-            display: "as",
-            border: "box",
-            borderColor: "border.color",
-            borderWidth: "border.width",
-            borderRadius: "border.radius",
-            borderStyle: "border.style",
-            duration: "milli",
-        });
-    },
-    // apply css rules, but like, with shorter names in setting
-    like: function(el, setting) {
-        var T = this,
-             opts = T.format(setting);
-        _.each(setting.bi, function(letter) {
-            switch(letter) {
-                case 'b': opts.fontWeight = "bold"; break;
-                case 'i': opts.textDecoration = "italic"; break;
-            }
-        });
             
-        console.log(opts);
-        el.style(opts);
-    },
-    all: function() { // update the styles of all the els
-        var T = this;
-        _.each(T.active, function(setting, name) {
-            _.each(T.map[name], function(el) {
-                T.like(el, setting);
-            });
-        });
-    },
-    change: function(style, setting) {
-        var T = this;
-        _.extend(T.active[style], setting);
-        
-        _.each(T.map[style], function(el) {
-            T.like(el, T.active[style]);
+        sheet[insert](selector + T.format(style), entry);
+        _.each(style.states, function(state, name) {
+            T.css(selector+    
         });
     },
     mode: function(mode) {
         var T = this;
         T.mode = mode;
         T.active = T.settings.modes[mode];
-        T.all();
+        _.each(T.active, css);     
     },
     font: function(family, provider) {
         if(!family) return;
@@ -140,6 +80,53 @@ Style = module.exports = Class(function(setting) {
             webfont.load(req);
             T.fonts[family] = fontprovider;
         }
+    },
+    format: function(setting) {
+        var set = setting,
+            states = set.states,
+            map = {
+                "font": "fontFamily",
+                "size": "fontSize",
+                "bg": "backgroundColor",
+                "fg": "color",
+                "pad": "padding", 
+                "margin": "margin",
+                "as": "display", 
+                "box": "border",
+                "border.color": "borderColor",
+                "border.width": "borderWidth",
+                "border.radius": "borderRadius",
+                "border.style": "borderStyle",
+            };
+
+        set = u.remap(set, map);
+
+        if(states) {
+            var duration = setting.trans ? setting.trans : T.setting.trans,
+               transition = [];
+            _.each(states[0], function(rules, name) {
+               transition.push(name);           
+            });
+            set.transition = transition.join(duration+",") + duration;
+            
+            var init = setting.start;
+            if(init) {
+                _.extend(set, setting.states[init]);
+            }
+        }
+
+        _.each(setting.bi, function(letter) {
+            switch(letter) {
+                case 'b': opts.fontWeight = "bold"; break;
+                case 'i': opts.textDecoration = "italic"; break;
+            }
+        });
+    
+        var text = "{";
+        _.each(set, function(rule, name) {
+            text + = 
+        });
+        return text + "}";
     },
     scalefont: function(el, style, to) { // used to scale fonts to a certain width
         var T = this,
@@ -178,14 +165,6 @@ Style = module.exports = Class(function(setting) {
         el.style({
             width: ideal+'px',
         });
-    },
-    css: function(selector, rule) {
-        var sheet = document.styleSheets[0],
-            // choose correct names in case of IE8
-            rules = sheet.cssRules ? sheet.cssRules : sheet.rules,
-            insert = sheet.insertRule ? "insertRule" : "addRule";
-
-        sheet[insert](selector + ' {' + rule + '}', rules.length);
     },
     clearvoid: function() {
         var v = this.void;

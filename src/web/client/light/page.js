@@ -1,4 +1,5 @@
 var _ = require("underscore"),
+    u = require("../../common/utils"),
     config = require("./config"),
     Context = require("./context"),
     Class = require("../../common/class"),
@@ -19,16 +20,21 @@ Page = module.exports = Class(function(title, mode) {
             editable: true,
             attr: {
                 "data-placeholder": "Title",
-            }
+            },
         }),
     };
 
     T.lines = new List(El);
+    T.title.el.on({
+        'enter': function(e) {
+            T.lines.first.focus();
+            return false;
+        },
+    });
 
     T.style = new Style(config.style);
-    if(mode) { T.style.mode(mode); }
-    T.styling();
-    T.style.css("::selection", "color:white;background-color:black;");
+    T.styling(mode);
+
 },{
     newline: function(before) {
         // TODO header logic
@@ -41,6 +47,8 @@ Page = module.exports = Class(function(title, mode) {
                 opacity: 1,
             },
         }], before);
+
+        line.headerlevel = -1;
 
         T.el.insert(line, before);
 
@@ -68,9 +76,9 @@ Page = module.exports = Class(function(title, mode) {
         if(!prev && !next) return;
         line.el.blur();
         
-        line.fade(200, function() {
+        line.fade(100, function() {
             T.lines.each(function(following) {
-                following.fade(200);
+                following.fade(100);
             }, line);
             setTimeout(function() {
                 T.el.remove(line);
@@ -87,16 +95,46 @@ Page = module.exports = Class(function(title, mode) {
                 T.lines.each(function(l) {
                     console.log(l.text());
                 });
-            }, 200);
+            }, 100);
         });
 
     },
     activate: function(line) {
         var T = this;
         line.focus();  
-        if(T.active) T.style.trans(T.active, "passive");
+        if(T.active && (T.active.id !== line.id)) T.style.trans(T.active, "passive");
         T.active = line;
         T.style.trans(line, "active");
+    },
+    updateheader: function(line, lowerlevel) {
+        var T = this,
+            change = false;
+        if(lowerlevel) { 
+            if(line.headerlevel < T.maxheader) {
+                ++line.headerlevel;
+                change = true;
+            }
+        } else {
+            if(T.headerlevel >= -1) { 
+                --line.headerlevel;
+                change = true;
+            }
+        }
+        console.log(line.headerlevel, change, T.maxheader);
+        if(change) {
+            if(T.headerlevel == -1) {
+                line.placeholder('');
+                T.style.the(T.active, "line");       
+            } else {
+                var header = "header";
+                if(T.headerlevel > 0) {
+                    header += " "+T.headerlevel;
+                }
+                line.placeholder(header);
+                T.style.the(T.active, header);       
+            }
+        }
+        return T.headerlevel;
     },
     listen: function(line) {
         var T = this;
@@ -105,11 +143,14 @@ Page = module.exports = Class(function(title, mode) {
                 T.activate(line);
                 //T.style.selection();
             },
-    
             // keystrokes
             '↩': function(e) {
-                var next = T.newline(line.Lnext);
-                T.activate(next);
+                if(T.active.text().length === 0) {
+                    T.updateheader(line, true);
+                } else {
+                    var next = T.newline(line.Lnext);
+                    T.activate(next);
+                }
                 return false; // prevents default event
             },
             'shift+↩': function(e) {
@@ -138,16 +179,32 @@ Page = module.exports = Class(function(title, mode) {
                 return false;
             },
             'backspace': function() {
-                if(line.text().length === 0) {
-                    T.remove(line);
+                if(line.text().length === 0) { 
+                    if(line.headerlevel === -1) {
+                        T.remove(line);
+                    } else {
+                        T.updateheader(line);
+                    }
+                } 
+            },
+            'keyup': function(e) {
+                if(line.text().length > 0) {
+                    T.blanks = 0;
                 }
             },
         });
     },
-    styling: function() {
+    styling: function(mode) {
         var T = this;
         
+        if(mode) T.style.mode(mode);
+
         T.style.the(T.el, "page");
         T.style.the(T.title.el, "title");
+
+        T.style.css("::selection", "color:white;background-color:#000;opacity:1;");
+
+        var subheaders = T.style.active.subheaders;
+        T.maxheader = Array.isArray(subheaders) ? subheaders.length : 0;
     },
 });

@@ -10,6 +10,7 @@ var transparent = "rgba(0,0,0,0)",
 module.exports = (function() {
     return {
         style: {
+            trans: "200ms", 
             max: {
                 width: 600,
             },
@@ -27,17 +28,18 @@ module.exports = (function() {
                     },
                 },
                 standard: {
-                  page: {
-                      bg: "#fff",
-                      fg: "#000",
-                      size: '1.3em',
-                      font: 'Lustria',
-                  },
-                  title: {
-                        size: '3.9em',
-                        font: 'Cinzel',
-                        pad: '0 10px',
-                        //margin: '50px 0 40px 0',
+                    page: {
+                        trans: "1s",
+                        bg: "#fff",
+                        fg: "#000",
+                        size: '1.3em',
+                        font: 'Lustria',
+                    },
+                    title: {
+                          size: '3.9em',
+                          font: 'Cinzel',
+                          pad: '0 10px',
+                          //margin: '50px 0 40px 0',
                     },
                     header: {
                         size: '2.5em',
@@ -56,7 +58,8 @@ module.exports = (function() {
                             radius: "8px",
                         },
                         start: "off",
-                        trans: {
+                        trans: "200ms",
+                        states: {
                             on: {
                                 border: {
                                     color: "#333",
@@ -64,7 +67,6 @@ module.exports = (function() {
                                 },
                                 bg: dark.gray,
                                 fg: "#fff",
-                                milli: 200,
                             },
                             off: {
                                 bg: "#fff",
@@ -79,14 +81,14 @@ module.exports = (function() {
                         pad: "10px",
                         box: "1px solid #fff",
                         start: "passive",
-                        trans: {
+                        trans: "200ms",
+                        states: {
                             active: {
                                 border: {
                                     color: "#ff0",    
                                 },
                                 bg: "#000", // light.nature,
                                 fg: "#fafafa",
-                                milli: 200,
                             },
                             passive: {
                                 border: {
@@ -94,7 +96,6 @@ module.exports = (function() {
                                 },
                                 bg: "#fff",
                                 fg: "#000",
-                                milli: 200,
                             },
                         },
                     },

@@ -1,4 +1,3 @@
-
 var _ = require("underscore"),
     Class = require("../../common/class"),
     XYZ = require("./xyz");
@@ -283,7 +282,7 @@ var Mesh = module.exports = Class(function(html, opts) {
                     height: diameter,
                     borderRadius: opts.square ? 0 : rxy.r +"px",
                 },
-                addClass: "her-class her-circle",
+                is: "her-class her-circle",
                 into: T.html,
             }),
         }); 
@@ -328,7 +327,7 @@ var Mesh = module.exports = Class(function(html, opts) {
     block: function(position, options) {
         var T = this,
             opts = _.defaults(options ? options : {}, {
-                addClass: '',
+                is: '',
                 editable: true,    
             }), 
             topleft, bottomright;
@@ -353,7 +352,7 @@ var Mesh = module.exports = Class(function(html, opts) {
                 br: bottomright,
                 el: new El("div", {
                     id: id,    
-                    addClass: "her-class her-block "+opts.addClass,
+                    is: "her-class her-block "+opts.addClass,
                     into: T.html,
                     editable: opts.editable,
                 }),
@@ -385,7 +384,7 @@ var Mesh = module.exports = Class(function(html, opts) {
                     height: block_size,
                 },{
                     id: [grid_id,c,r].join("-"),
-                    addClass: "her-class her-grid-block",   
+                    is: "her-class her-grid-block",   
                     into: into,
                 });
                 row.push(block);

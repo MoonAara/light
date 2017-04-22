@@ -15,7 +15,7 @@ module.exports = (function () { return {
     // a concise summary of everything wrong with javascript:
     remap: function(obj, map) {
         var result = {};
-        _.each(map, function(original, name) {
+        _.each(map, function(name, original) {
             var parts = original.split('.'),
                 set = _.clone(obj),
                 pl = parts.length - 1.

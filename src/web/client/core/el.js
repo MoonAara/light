@@ -44,17 +44,21 @@ var El = module.exports = Class(function(html, opts) {
     remove: function(child) {
         this.el.removeChild(child.el);
     },
-    addClass: function(cl) {
-        this.el.className += ' '+cl;
+    is: function(type) {
+        var T = this,
+            current = T.el.className;
+        if(!_.contains(type.split(' '), current) {
+            this.el.className += ' '+cl;
+        }
     },
-    removeClass: function(cl) {
+    isnt: function(type) {
         var T = this,
             classes = _.filter(T.el.className.split(' '), function(name) {
                 return name !== cl;  
             });
         T.el.className = classes.join(' ');
     },
-    toggleClass: function(cl) {
+    toggle: function(type) {
         var T = this,
             classes = T.el.className.split(' ');
         if(_.contains(classes, cl)) {

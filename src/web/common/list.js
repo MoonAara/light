@@ -10,6 +10,7 @@ var List = module.exports = Class(function(Item, opts) {
     T.opts = opts = opts ? opts : {};
     T.index = {};
     T.count = {};
+    T.ids = 0;
 
     _.each(opts.index, function(property) {
         T.index[property] = {};
@@ -18,7 +19,6 @@ var List = module.exports = Class(function(Item, opts) {
     _.each(opts.count, function(property) {
         T.count[property] = {};
     });
-
 
     T.validate();
 },
@@ -40,9 +40,9 @@ var List = module.exports = Class(function(Item, opts) {
         // makes a new node with class Item
         return new (Function.prototype.bind.apply(this.Item, args ? [null].concat(args) : []));
     },
-    init: function(item, i) {
+    init: function(item) {
         var T = this;
-        if(T.opts.init) T.opts.init(item, i);
+        if(T.opts.init) T.opts.init(item);
         if(T.opts.index) {
             _.each(T.opts.index, function(property) {
                 var slot = T.index[property][item[property]];
@@ -137,6 +137,7 @@ var List = module.exports = Class(function(Item, opts) {
         if(!T.start) T.start = item;
         if(!T.end) T.end = item;
 
+        item.id = T.ids++;
         T.init(item, before);
         return item;
     },
